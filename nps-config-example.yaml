@@ -1,0 +1,8 @@
+repos:
+  npc:
+    type: ipfs
+  npc-github:
+    type: github
+    repo: npc-templates
+    owner: derage
+    branch: main
