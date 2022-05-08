@@ -6,6 +6,13 @@ package main
 
 import "github.com/derage/npc/cmd"
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+	builtBy = "unknown"
+)
+
 func main() {
-	cmd.Execute()
+	cmd.Execute(version, commit, date, builtBy)
 }

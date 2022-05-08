@@ -15,25 +15,38 @@ import (
 
 var cfgFile string
 var logger = utils.GetLogger()
+var version, commit, date, builtBy string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "npc",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "Templating tool to help with your every day needs",
+	Long: `NPC: who you go to when you want to continue your journey
+in your quest for devops.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+This tool will use template files from the given repo
+that is configured in your yaml file to bootstrap the 
+directory you give it. With the help of various template
+functions, this tool can be used to generate files that
+would otherwise need to be copied from various locations`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {
+		if viper.GetBool("version") {
+			fmt.Printf("npc %s, commit %s, built at %s by %s", version, commit, date, builtBy)
+		} else {
+			cmd.Help()
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+func Execute(bVersion string, bCommit string, bDate string, bBuiltBy string) {
+	version = bVersion
+	commit = bCommit
+	date = bDate
+	builtBy = bBuiltBy
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
@@ -56,6 +69,7 @@ func init() {
 	rootCmd.PersistentFlags().StringP("template", "t", "", "Help message for toggle")
 	rootCmd.PersistentFlags().StringP("template-path", "p", home+"/.npc", "Where do you want your templates to be cached?")
 	rootCmd.PersistentFlags().StringP("directory", "d", "./", "Where do you want to bootstrap the files to?")
+	rootCmd.PersistentFlags().BoolP("version", "v", false, "Print build version")
 	viper.BindPFlags(rootCmd.PersistentFlags())
 }
 

@@ -101,12 +101,16 @@ func (config *Config) CopyTemplates() error {
 				return nil
 			}
 
-			tmpl, err := template.New(path).Funcs(config.TemplateFuncs).ParseFiles(path)
+			logger.Infof("Templating file %s", path)
+
+			tmpl, err := template.New(fileInfo.Name()).Funcs(config.TemplateFuncs).ParseFiles(path)
 			if err != nil {
 				return err
 			}
 
-			file, err := os.Create(fmt.Sprintf("%s/%s", config.BinaryViper.GetString("directory"), fileInfo.Name()))
+			fileToWriteTo := fmt.Sprintf("%s/%s", config.BinaryViper.GetString("directory"), fileInfo.Name())
+			logger.Infof("Writing file to %s", fileToWriteTo)
+			file, err := os.OpenFile(fileToWriteTo, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 			if err != nil {
 				return err
 			}
@@ -129,10 +133,10 @@ func (config *Config) LoadTemplateConfig() error {
 
 	// Search config in home directory with name ".npc" (without extension).
 	// TODO: Figure out which one takes precidents. Directory should take precidents over teampltePath
-	config.TemplateViper.AddConfigPath(templatePath)
 	config.TemplateViper.AddConfigPath(directory)
+	config.TemplateViper.AddConfigPath(templatePath)
 	config.TemplateViper.SetConfigType("yaml")
-	config.TemplateViper.SetConfigName("template-config")
+	config.TemplateViper.SetConfigName(".template-config")
 
 	config.TemplateViper.AutomaticEnv() // read in environment variables that match
 
