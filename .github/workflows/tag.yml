@@ -1,0 +1,20 @@
+name: bump and tag
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '0'
+    - name: Bump version and push tag
+      uses: anothrNick/github-tag-action@1.36.0 # https://github.com/marketplace/actions/github-tag-bump
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true
+        DRY_RUN: true
