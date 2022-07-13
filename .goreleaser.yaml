@@ -13,6 +13,8 @@ builds:
       - linux
       - windows
       - darwin
+    ldflags:
+      - -X github.com/derage/npc/pkg/template_functions/config_funcs.secured=y
 archives:
   - replacements:
       darwin: Darwin

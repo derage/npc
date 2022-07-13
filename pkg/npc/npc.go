@@ -37,15 +37,18 @@ type Config struct {
 func Initialize(myViper *viper.Viper) (Config, error) {
 	myConfig := Config{}
 	var err error
+
 	template := myViper.GetString("template")
 	templatesplit := strings.Split(template, "/")
 	repoConfig := myViper.GetStringMapString("repos." + templatesplit[0])
+
 	switch os := repoConfig["type"]; os {
 	case "github":
 		myConfig.Repo, err = githubRepo.Initialize(repoConfig)
 	default:
 		return myConfig, fmt.Errorf("Repo type not supported yet")
 	}
+
 	myConfig.RepoName = templatesplit[0]
 	myConfig.TemplateName = templatesplit[1]
 	myConfig.BinaryViper = myViper

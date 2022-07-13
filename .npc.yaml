@@ -1,9 +1,7 @@
-#template-path: ./test
+test: metesting
 repos:
-  npc:
-    type: ipfs
   npc-github:
-    type: github
-    repo: templates
-    owner: derage
-    branch: main
+      type: github
+      repo: templates
+      owner: derage
+      branch: main
