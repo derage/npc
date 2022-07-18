@@ -7,7 +7,18 @@ before:
     # you may remove this if you don't need go generate
     - go generate ./...
 builds:
-  - env:
+  - id: npc-secure
+    binary: npc-secure 
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -X github.com/derage/npc/pkg/template_functions/config_funcs.secured=y
+  - id: npc
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
