@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 
 	"github.com/derage/npc/pkg/utils"
 	"github.com/go-git/go-git/plumbing/transport"
@@ -30,11 +31,11 @@ func Initialize(repo map[string]string) (*Repo, error) {
 func (repo *Repo) GetTemplate(template string, location string) error {
 	// Get template. We probably wont use template variable here, but
 	// for some repos we will need the template name, so just doing it
-	// for hte interface. Just call getrepo here
+	// for the interface. Just call getrepo here
 	if _, err := os.Stat(location); err == nil {
 		logger.Infof("Repo already checked out at %s", location)
 	} else if errors.Is(err, os.ErrNotExist) {
-		logger.Infof("Repo not checkedout yet to location %s, checking out now", location)
+		logger.Infof("Repo not checked out yet atlocation %s, checking out now", location)
 		return repo.GetRepo(location)
 	} else {
 		logger.Warnf("Got an error when checking if template %s exists in location %s: %s", template, location, err.Error())
@@ -45,14 +46,14 @@ func (repo *Repo) GetTemplate(template string, location string) error {
 }
 
 func (repo *Repo) UpdateTemplate(template string, location string) error {
-	//Another method where we just need location, but other repo types
+	// Another method where we just need location, but other repo types
 	// might pull just the template and not full repo so this is just to
 	// satisfy interface
 	return repo.PullLatest(location)
 }
 
 func (repo *Repo) TemplateExists(template string, location string) bool {
-	//take location, add repo name from repo.Name onto it
+	// take location, add repo name from repo.Name onto it
 	// then add template onto it, and make sure it all exists under
 	// location/RepoName/template, return true or false
 	templateLocation := location + "/" + template
@@ -117,6 +118,10 @@ func (repo *Repo) GetRepo(location string) error {
 	return nil
 }
 
+func (repo *Repo) GetType() string {
+	return repo.Type
+}
+
 func authWithToken(token string) *http.BasicAuth {
 	return &http.BasicAuth{
 		Username: "npc_login", // yes, this can be anything except an empty string
@@ -175,4 +180,21 @@ func (repo *Repo) PullLatest(location string) error {
 
 	logger.Infof("Pulled latest commit of branch %s, commit %s", branch, commit)
 	return nil
+}
+
+func (repo *Repo) ReadProperty(property string) string {
+	// Gets a property defined in repo.<REPONAME> from .npc.yaml
+	value := reflect.ValueOf(repo)
+	valueE := value.Elem()
+
+	for _, name := range []string{property} {
+		field := valueE.FieldByName(name)
+
+		if field == (reflect.Value{}) {
+			logger.Warnf("field %s not exist in struct", name)
+			return ""
+
+		}
+	}
+	return reflect.Indirect(value).FieldByName(property).String()
 }

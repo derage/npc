@@ -7,3 +7,6 @@ repos:
     repo: templates
     owner: derage
     branch: main
+  myOS:
+    type: local
+    path: "/tmp/templates"
