@@ -66,9 +66,9 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.PersistentFlags().StringP("template", "t", "", "name of the template")
+	rootCmd.PersistentFlags().StringP("template", "t", "", "Name of the template <REPO>/<NAME> (e.g. github/template-me)")
 	rootCmd.PersistentFlags().StringP("template-path", "p", home+"/.npc", "Where do you want your templates to be cached?")
-	rootCmd.PersistentFlags().StringP("directory", "d", "./", "Where do you want to bootstrap the files to?")
+	rootCmd.PersistentFlags().StringP("directory", "d", "./", "Where do you want to render the files to?")
 	rootCmd.PersistentFlags().BoolP("version", "v", false, "Print build version")
 	viper.BindPFlags(rootCmd.PersistentFlags())
 }

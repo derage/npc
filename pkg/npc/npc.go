@@ -9,6 +9,7 @@ import (
 
 	sprig "github.com/Masterminds/sprig/v3"
 	githubRepo "github.com/derage/npc/pkg/repos/github"
+	localRepo "github.com/derage/npc/pkg/repos/local"
 	configFuncs "github.com/derage/npc/pkg/template_functions/config_funcs"
 	"github.com/derage/npc/pkg/utils"
 
@@ -20,6 +21,7 @@ var logger = utils.GetLogger()
 type Repo interface {
 	GetRepo(location string) error
 	GetTemplate(template string, location string) error
+	ReadProperty(property string) string
 	TemplateExists(template string, location string) bool
 	UpdateTemplate(template string, location string) error
 }
@@ -43,10 +45,16 @@ func Initialize(myViper *viper.Viper) (Config, error) {
 	repoConfig := myViper.GetStringMapString("repos." + templatesplit[0])
 
 	switch os := repoConfig["type"]; os {
+
 	case "github":
 		myConfig.Repo, err = githubRepo.Initialize(repoConfig)
+
+	case "local":
+		myConfig.Repo, err = localRepo.Initialize(repoConfig)
+
 	default:
 		return myConfig, fmt.Errorf("Repo type not supported yet")
+
 	}
 
 	myConfig.RepoName = templatesplit[0]
@@ -58,18 +66,22 @@ func Initialize(myViper *viper.Viper) (Config, error) {
 
 func (config *Config) Bootstrap() error {
 	var err error
-	templateCache := config.BinaryViper.GetString("template-path") + "/" + config.RepoName
+
 	template := config.TemplateName
+	templateCache := config.determineTemplateCache()
+
 	// First check if repo/template exist
 	if !config.Repo.TemplateExists(template, templateCache) {
 		err = config.Repo.GetTemplate(template, templateCache)
 	} else if config.BinaryViper.GetBool("force-update") {
 		err = config.Repo.UpdateTemplate(template, templateCache)
 	}
+
 	if err != nil {
 		logger.Error(err.Error())
 		return err
 	}
+
 	// Now we have the template, lets load the viper config
 	err = config.LoadTemplateConfig()
 	if err != nil {
@@ -89,7 +101,8 @@ func (config *Config) Bootstrap() error {
 }
 
 func (config *Config) CopyTemplates() error {
-	filePath := config.BinaryViper.GetString("template-path") + "/" + config.RepoName + "/" + config.TemplateName
+	templateCache := config.determineTemplateCache()
+	filePath := templateCache + "/" + config.TemplateName
 	err := filepath.Walk(filePath,
 		func(path string, info os.FileInfo, err error) error {
 			var data interface{}
@@ -162,4 +175,14 @@ func (config *Config) LoadTemplateFunctions() error {
 
 	return nil
 
+}
+
+func (config *Config) determineTemplateCache() string {
+	propertyType := config.Repo.ReadProperty("Type")
+
+	if propertyType == "local" {
+		return config.Repo.ReadProperty("Path")
+	}
+
+	return config.BinaryViper.GetString("template-path") + "/" + config.RepoName
 }
